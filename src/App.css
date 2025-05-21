@@ -1,5 +1,19 @@
+/* استایل‌های پایه برای html و body */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden; /* جلوگیری از اسکرول در body اصلی */
+}
+
 .App {
   text-align: center;
+  background-color: #f6f6f6;
+  height: 100vh; /* استفاده از viewport height بجای min-height */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* جلوگیری از اسکرول در کل اپلیکیشن */
 }
 
 .App-logo {
@@ -14,14 +28,15 @@
 }
 
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+  background-color: #f6f6f6;
+  min-height: 15vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: black;
+  flex-shrink: 0; /* جلوگیری از کوچک شدن هدر */
 }
 
 .App-link {
@@ -35,4 +50,43 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.App-body {
+  background-color: #f6f6f6;
+  display: grid;
+  grid-template-columns: 1fr 4fr 1fr;
+  gap: 60px;
+  padding: 50px 150px 0 150px;
+  align-items: start;
+  flex-grow: 1; /* اجازه می‌دهد که بدنه اصلی فضای باقی‌مانده را پر کند */
+  overflow: hidden; /* جلوگیری از اسکرول در بدنه اصلی */
+  height: calc(85vh - 50px); /* ارتفاع مناسب با احتساب هدر و padding */
+}
+
+.App-checkbox {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  overflow: hidden; /* جلوگیری از اسکرول در کانتینر چک‌باکس */
+}
+
+/* استایل برای باکس بالایی که باید ثابت باشد */
+.header-box {
+  flex-shrink: 0; /* این بخش نباید کوچک شود */
+  margin-bottom: 10px; /* فاصله با لیست */
+}
+
+/* استایل برای باکس پایینی که باید ثابت باشد (دکمه ایجاد تسک) */
+.footer-box {
+  flex-shrink: 0; /* این بخش نباید کوچک شود */
+  margin-bottom: 50px;
+}
+
+/* استایل برای CheckboxList که باید اسکرول داشته باشد */
+.checkbox-list-container {
+  flex-grow: 1; /* کل فضای باقیمانده را اشغال کند */
+  overflow-y: auto; /* فقط این بخش اسکرول داشته باشد */
+  height: auto; /* ارتفاع خودکار با توجه به فضای باقیمانده */
 }
