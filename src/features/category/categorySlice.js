@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = [
   // دسته‌بندی نامشخص برای موارد null
-  { id: "unknown", label: "نامشخص", icon: "Unknown", color: "#9E9E9E" },
+  { id: "unknown", label: "Unknown", icon: "Unknown", color: "#9E9E9E" },
   { id: "work", label: "Work", icon: "Work", color: "#2196F3" },
   { id: "personal", label: "Personal", icon: "Person", color: "#9C27B0" },
   {
@@ -13,6 +13,7 @@ const initialState = [
   },
   { id: "health", label: "Health", icon: "Favorite", color: "#F44336" },
   { id: "learning", label: "Learning", icon: "School", color: "#FFEB3B" },
+  //{id: "default", label: "Learning", icon: "School", color: "#FFEB3B" }
 ];
 
 const categorySlice = createSlice({
@@ -26,7 +27,7 @@ const categorySlice = createSlice({
 
       state.push({
         label,
-        icon: icon || "Work", // default icon
+        icon: icon || "default", // default icon
         color: color || "#90A4AE", // default grey-blue
         id: label.toLowerCase().replace(/\s+/g, "-"), // generate a unique id
       });
