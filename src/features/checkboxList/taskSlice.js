@@ -1,58 +1,25 @@
+// src/features/tasks/taskSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = [
-  {
-    id: "initial", // برای تشخیص اینکه نمونه اولیه‌ست
-    title: "Example",
-    description: "Description ...",
-    dateTime: new Date().toISOString(),
-    categoryId: "unknown", // دسته‌بندی پیش‌فرض به نامشخص تغییر کرده
-    finished: false,
-  },
-];
-
-const tasksSlice = createSlice({
+const taskSlice = createSlice({
   name: "tasks",
-  initialState,
+  initialState: [],
   reducers: {
+    setTasks: (state, action) => {
+      return action.payload.filter( task => {return !task.finished});
+    },
     addTask: (state, action) => {
-      const { title, description, dateTime, categoryId = "unknown", finished = false } = action.payload;
-      const exists = state.some((task) => task.title === title);
-      if (!title || exists) return;
-
-      // اگر نمونه اولیه هنوز هست، حذفش کن
-      if (state.length === 1 && state[0].id === "initial") {
-        state.pop();
-      }
-
-      state.push({
-        id: crypto.randomUUID(), // شناسه یکتا برای مدیریت ویرایش/حذف
-        title,
-        description,
-        dateTime,
-        categoryId: categoryId || "unknown", // اگر null یا undefined بود، نامشخص قرار بده
-        finished,
-      });
+      state.push(action.payload);
     },
-
     updateTask: (state, action) => {
-      const { id, ...updates } = action.payload;
-      const existingTask = state.find((task) => task.id === id);
-      if (existingTask) {
-        // فقط زمانی که categoryId در updates وجود داشته باشد و null یا undefined باشد
-        if ('categoryId' in updates && (updates.categoryId === null || updates.categoryId === undefined)) {
-          updates.categoryId = "unknown";
-        }
-        Object.assign(existingTask, updates); // فقط اونایی که اومدن رو آپدیت کن
-      }
+      const index = state.findIndex((t) => t.id === action.payload.id);
+      if (index !== -1) state[index] = { ...state[index], ...action.payload };
     },
-
     deleteTask: (state, action) => {
-      const idToDelete = action.payload;
-      return state.filter((task) => task.id !== idToDelete);
+      return state.filter((task) => task.id !== action.payload);
     },
   },
 });
 
-export const { addTask, editTask, updateTask, deleteTask } = tasksSlice.actions;
-export default tasksSlice.reducer;
+export const { setTasks, addTask, updateTask, deleteTask } = taskSlice.actions;
+export default taskSlice.reducer;

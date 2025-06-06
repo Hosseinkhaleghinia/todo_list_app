@@ -17,7 +17,7 @@ export default function CustomCheckbox({ checked, onChange }) {
       }}
     >
       {checked ? (
-        <CheckBoxIcon sx={{ color: "#00796B" }} />
+        <CheckBoxIcon  sx={{ color: "#00796B" }} />
       ) : (
         <CheckBoxOutlineBlankIcon sx={{ color: "#757575" }} />
       )}

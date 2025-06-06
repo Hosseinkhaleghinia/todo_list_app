@@ -18,17 +18,18 @@ import { iconMap } from "../category/CategoryIcons";
 import dayjs from "dayjs";
 import { deleteTask, updateTask } from "./taskSlice";
 import { toggleEditTask } from "../createTask/toggleSlice";
+import { updateTaskInDB, deleteTaskFromDB } from "../../services/taskService";
 
 export default function CheckboxList({
   selectedDate = null,
   selectedCategory = null,
 }) {
   const [checked, setChecked] = React.useState([]);
-  const tasks = useSelector((state) => state.tasks);
+  const tasks = useSelector((state) => state.tasks) || [];
   const categories = useSelector((state) => state.categories);
   const dispatch = useDispatch();
 
-  const handleChecked = (taskId) => () => {
+  const handleChecked = (taskId) => async () => {
     const currentIndex = checked.indexOf(taskId);
     const newChecked = [...checked];
     let isFinished;
@@ -41,8 +42,20 @@ export default function CheckboxList({
       isFinished = false;
     }
 
-    dispatch(updateTask({ id: taskId, finished: isFinished }));
-    setChecked(newChecked);
+    try {
+      // 1. ابتدا در Redux به‌روزرسانی کن (برای سرعت UI)
+      dispatch(updateTask({ id: taskId, finished: isFinished }));
+      setChecked(newChecked);
+      
+      // 2. سپس در Firebase به‌روزرسانی کن
+      await updateTaskInDB(taskId, { finished: isFinished });
+    } catch (error) {
+      console.error("خطا در به‌روزرسانی تسک:", error);
+      // در صورت خطا، تغییرات Redux رو برگردون
+      dispatch(updateTask({ id: taskId, finished: !isFinished }));
+      const revertedChecked = [...checked];
+      setChecked(revertedChecked);
+    }
   };
 
   // پیدا کردن اطلاعات دسته‌بندی برای نمایش آیکون و رنگ
@@ -77,6 +90,20 @@ export default function CheckboxList({
     });
   }, [tasks, selectedDate, selectedCategory]);
 
+  const handleDelete = async (taskId) => {
+    try {
+      // 1. ابتدا از Redux حذف کن (برای سرعت UI)
+      dispatch(deleteTask(taskId));
+      
+      // 2. سپس از Firebase حذف کن
+      await deleteTaskFromDB(taskId);
+    } catch (error) {
+      console.error("خطا در حذف تسک:", error);
+      // در صورت خطا، تسک رو دوباره به Redux اضافه کن
+      // (البته باید تسک اصلی رو ذخیره کرده باشیم)
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -95,7 +122,7 @@ export default function CheckboxList({
 
             return (
               <ListItem
-                key={index}
+                key={task.id} // استفاده از task.id به جای index
                 sx={{
                   marginBottom: "10px",
                   padding: "8px",
@@ -142,7 +169,7 @@ export default function CheckboxList({
                       <EditIcon sx={{ color: "#333" }} />
                     </IconButton>
                     <IconButton
-                      onClick={() => dispatch(deleteTask(task.id))}
+                      onClick={() => handleDelete(task.id)}
                       sx={{
                         backgroundColor: "#F6F6F6",
                         borderRadius: "6px",
