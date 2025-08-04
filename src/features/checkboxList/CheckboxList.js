@@ -108,7 +108,7 @@ export default function CheckboxList({
     <Box
       sx={{
         width: "100%",
-        overflowY: "auto",
+        // overflowY: "auto",
         height: "calc(75vh - 150px)",
       }}
     >

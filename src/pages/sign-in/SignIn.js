@@ -17,12 +17,10 @@ import ForgotPassword from './components/ForgotPassword';
 import AppTheme from '../shared-theme/AppTheme';
 import ColorModeSelect from '../shared-theme/ColorModeSelect';
 import { GoogleIcon, FacebookIcon, SitemarkIcon } from './components/CustomIcons';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase/firebaseConfig';
+import { signIn } from '../../services/authService';
 import { useNavigate } from 'react-router-dom';
 
-
-const Card = styled(MuiCard)(({ theme }) => ({
+export const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   alignSelf: 'center',
@@ -65,11 +63,14 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
 }));
 
 export default function SignIn(props) {
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
   const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [open, setOpen] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
 
   const handleClickOpen = () => {
@@ -80,39 +81,51 @@ export default function SignIn(props) {
     setOpen(false);
   };
 
- const handleSubmit = async (event) => {
-  event.preventDefault(); // جلوگیری از ری‌لود شدن
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-  if (!validateInputs()) return;
+    if (!validateInputs()) return;
 
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    alert("Logged in successfully!");
-    navigate('/'); // به صفحه اصلی هدایت می‌کند
-  } catch (error) {
-    alert(error.message);
-  }
-};
+    setLoading(true);
 
+    try {
+      const { user, session } = await signIn(email, password);
+      
+      if (user) {
+        console.log('ورود موفقیت‌آمیز:', user.email);
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('خطا در ورود:', error.message);
+      
+      // نمایش پیغام خطای مناسب
+      if (error.message.includes('Invalid login credentials')) {
+        alert('ایمیل یا رمز عبور اشتباه است');
+      } else if (error.message.includes('Email not confirmed')) {
+        alert('لطفاً ابتدا ایمیل خود را تأیید کنید');
+      } else {
+        alert('خطا در ورود: ' + error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validateInputs = () => {
-    const email = document.getElementById('email');
-    const password = document.getElementById('password');
-
     let isValid = true;
 
-    if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
       setEmailError(true);
-      setEmailErrorMessage('Please enter a valid email address.');
+      setEmailErrorMessage('لطفاً یک آدرس ایمیل معتبر وارد کنید.');
       isValid = false;
     } else {
       setEmailError(false);
       setEmailErrorMessage('');
     }
 
-    if (!password.value || password.value.length < 6) {
+    if (!password || password.length < 6) {
       setPasswordError(true);
-      setPasswordErrorMessage('Password must be at least 6 characters long.');
+      setPasswordErrorMessage('رمز عبور باید حداقل 6 کاراکتر باشد.');
       isValid = false;
     } else {
       setPasswordError(false);
@@ -121,9 +134,21 @@ export default function SignIn(props) {
 
     return isValid;
   };
-   const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
 
+  // Google Sign In handler (اختیاری - نیاز به تنظیمات اضافی در Supabase)
+  const handleGoogleSignIn = async () => {
+    try {
+      // const { data, error } = await supabase.auth.signInWithOAuth({
+      //   provider: 'google',
+      //   options: {
+      //     redirectTo: `${window.location.origin}/`
+      //   }
+      // });
+      alert('ورود با Google هنوز پیاده‌سازی نشده است');
+    } catch (error) {
+      console.error('خطا در ورود با Google:', error);
+    }
+  };
 
   return (
     <AppTheme {...props}>
@@ -166,9 +191,9 @@ export default function SignIn(props) {
                 variant="outlined"
                 color={emailError ? 'error' : 'primary'}
                 value={email} 
-                onChange={(e) => setEmail(e.target.value)} />
-
-              
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+              />
             </FormControl>
             <FormControl>
               <FormLabel htmlFor="password">Password</FormLabel>
@@ -180,12 +205,13 @@ export default function SignIn(props) {
                 type="password"
                 id="password"
                 autoComplete="current-password"
-                autoFocus
                 required
                 fullWidth
                 variant="outlined"
                 color={passwordError ? 'error' : 'primary'}
-                value={password} onChange={(e) => setPassword(e.target.value)}
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
               />
             </FormControl>
             <FormControlLabel
@@ -197,9 +223,9 @@ export default function SignIn(props) {
               type="submit"
               fullWidth
               variant="contained"
-              onClick={validateInputs}
+              disabled={loading}
             >
-              Sign in
+              {loading ? 'Signing in...' : 'Sign in'}
             </Button>
             <Link
               component="button"
@@ -207,6 +233,7 @@ export default function SignIn(props) {
               onClick={handleClickOpen}
               variant="body2"
               sx={{ alignSelf: 'center' }}
+              disabled={loading}
             >
               Forgot your password?
             </Link>
@@ -216,8 +243,9 @@ export default function SignIn(props) {
             <Button
               fullWidth
               variant="outlined"
-              onClick={() => alert('Sign in with Google')}
+              onClick={handleGoogleSignIn}
               startIcon={<GoogleIcon />}
+              disabled={loading}
             >
               Sign in with Google
             </Button>
@@ -226,6 +254,7 @@ export default function SignIn(props) {
               variant="outlined"
               onClick={() => alert('Sign in with Facebook')}
               startIcon={<FacebookIcon />}
+              disabled={loading}
             >
               Sign in with Facebook
             </Button>

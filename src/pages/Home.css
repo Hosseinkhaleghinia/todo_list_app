@@ -53,6 +53,7 @@ html, body, #root {
   }
 }
 
+
 .App-body {
   background-color: #f6f6f6;
   /* display: grid;
@@ -96,6 +97,12 @@ html, body, #root {
 .header-box {
   flex-shrink: 0; /* این بخش نباید کوچک شود */
   margin-bottom: 10px; /* فاصله با لیست */
+}
+.logout{
+    flex-shrink: 0; /* این بخش نباید کوچک شود */
+  margin-bottom: 10px; /* فاصله با لیست */
+  display: flex;
+  justify-content: end;
 }
 
 /* استایل برای باکس پایینی که باید ثابت باشد (دکمه ایجاد تسک) */

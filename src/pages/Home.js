@@ -1,67 +1,88 @@
-import "../App.css";
-import CheckboxList from "../features/checkboxList/CheckboxList.js";
-import DateTimeDisplay from "../components/dateTime/DateTime.js";
-import CreateTask from "../features/createTask/CreateTask.js";
-import CategoryDrawer from "../features/category/CategoryDrawer.js";
-import TaskDateFilter from "../features/checkboxList/TaskDateFilter.js";
-
 import { useState } from "react";
-import { Box } from "@mui/material";
-
+import { Box, IconButton, useMediaQuery, Drawer } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import CategoryDrawer from "../features/category/CategoryDrawer/CategoryDrawer";
+import CheckboxList from "../features/checkboxList/CheckboxList";
+import DateTimeDisplay from "../components/dateTime/DateTime";
+import CreateTask from "../features/createTask/CreateTask";
+import TaskDateFilter from "../features/checkboxList/TaskDateFilter";
+import "./Home.css";
+import LogoutButton from "../components/logout/LogoutButton";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  toggleDrawer,
+  closeDrawer,
+} from "../features/category/CategoryDrawer/drawerSlice";
+import { Card } from "./sign-in/SignIn";
 
 function Home() {
+  const isDrawerOpen = useSelector((state) => state.drawer.isOpen);
+  const dispatch = useDispatch();
+
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  const handleDateChange = (newDate) => {
-    setSelectedDate(newDate);
-  };
+  const isDesktop = useMediaQuery("(min-width:1024px)");
 
-  const handleCategorySelect = (categoryId) => {
-    setSelectedCategory(categoryId);
-  };
+  const handleDateChange = (newDate) => setSelectedDate(newDate);
+  const handleCategorySelect = (categoryId) => setSelectedCategory(categoryId);
 
   return (
+    
     <div className="App">
+      <div className="logout">
+        <LogoutButton/>
+      </div>
       <div className="App-body">
-        <div>
+        {!isDesktop && (
+          <IconButton
+            onClick={() => dispatch(toggleDrawer())}
+            sx={{ position: "absolute", top: 10, left: 10 }}
+          >
+            <MenuIcon />
+          </IconButton>
+        )}
+
+        {isDesktop ? (
           <CategoryDrawer onCategorySelect={handleCategorySelect} />
-        </div>
-        <Box
-          className="App-checkbox"
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            height: "100%",
-            position: "relative",
-          }}
-        >
-          {/* باکس بالایی که باید ثابت باشد */}
+        ) : (
+          <Drawer open={isDrawerOpen} onClose={() => dispatch(toggleDrawer())}>
+            <CategoryDrawer
+              onCategorySelect={(id) => {
+                handleCategorySelect(id);
+                dispatch(closeDrawer()); // بستن دراور بعد از انتخاب
+              }}
+            />
+          </Drawer>
+        )}
+
+        <Box className="App-checkbox">
           <Box
             className="header-box"
             sx={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              mb: 2
+              mb: 2,
             }}
           >
-            
             <DateTimeDisplay />
+
             <TaskDateFilter onDateChange={handleDateChange} />
           </Box>
 
-          {/* باکس میانی که اسکرول می‌شود */}
           <div className="checkbox-list-container">
-            <CheckboxList selectedDate={selectedDate} selectedCategory={selectedCategory} />
+            <CheckboxList
+              selectedDate={selectedDate}
+              selectedCategory={selectedCategory}
+            />
           </div>
-          
-          {/* باکس پایینی که باید ثابت باشد */}
+
           <div className="footer-box">
             <CreateTask />
+            {/* <LogoutButton/> */}
           </div>
         </Box>
-        <div></div>
       </div>
     </div>
   );
